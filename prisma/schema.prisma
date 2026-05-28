@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Phrase {
+  id          String   @id @default(cuid())
+  phrase      String
+  meaning     String
+  example     String
+  translation String
+  category    String   @default("other")
+  memo        String   @default("")
+  difficulty  String   @default("normal")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  records     LearningRecord[]
+}
+
+model LearningRecord {
+  id          String   @id @default(cuid())
+  phraseId    String
+  phrase      Phrase   @relation(fields: [phraseId], references: [id], onDelete: Cascade)
+  isCorrect   Boolean
+  answeredAt  DateTime @default(now())
+}
