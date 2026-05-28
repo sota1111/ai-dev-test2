@@ -8,17 +8,19 @@ datasource db {
 }
 
 model Phrase {
-  id          String   @id @default(cuid())
-  phrase      String
-  meaning     String
-  example     String
-  translation String
-  category    String   @default("other")
-  memo        String   @default("")
-  difficulty  String   @default("normal")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  records     LearningRecord[]
+  id             String    @id @default(cuid())
+  phrase         String
+  meaning        String
+  example        String
+  translation    String
+  category       String    @default("other")
+  memo           String    @default("")
+  difficulty     String    @default("normal")
+  nextReviewDate DateTime?
+  reviewInterval Int       @default(1)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  records        LearningRecord[]
 }
 
 model LearningRecord {

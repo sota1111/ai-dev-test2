@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const MODES = [
+  { value: 'schedule', label: "Today's Review", desc: 'Phrases due today (spaced repetition)' },
   { value: 'all', label: 'All phrases', desc: 'Review all registered phrases' },
   { value: 'unreviewed', label: 'Unreviewed only', desc: 'Phrases you have never reviewed' },
   { value: 'weak', label: 'Weak phrases', desc: 'Phrases with accuracy below 50%' },
@@ -12,7 +13,7 @@ const DIFFICULTIES = ['', 'easy', 'normal', 'hard']
 
 export default function ReviewPage() {
   const router = useRouter()
-  const [mode, setMode] = useState('all')
+  const [mode, setMode] = useState('schedule')
   const [category, setCategory] = useState('')
   const [difficulty, setDifficulty] = useState('')
 

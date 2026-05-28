@@ -32,6 +32,12 @@ export async function GET(request: NextRequest) {
         const correct = p.records.filter(r => r.isCorrect).length
         return (correct / p.records.length) < 0.5
       })
+    } else if (mode === 'schedule') {
+      const todayEnd = new Date()
+      todayEnd.setHours(23, 59, 59, 999)
+      phrases = allPhrases.filter(p =>
+        p.nextReviewDate === null || p.nextReviewDate <= todayEnd
+      )
     } else {
       phrases = allPhrases
     }

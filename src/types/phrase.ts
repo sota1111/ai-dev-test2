@@ -7,12 +7,17 @@ export interface Phrase {
   category: string
   memo: string
   difficulty: string
+  nextReviewDate?: string | null
+  reviewInterval?: number
   createdAt: string
   updatedAt: string
-  accuracy?: number
-  totalCount?: number
-  correctCount?: number
-  lastReviewedAt?: string | null
+}
+
+export interface LearningRecord {
+  id: string
+  phraseId: string
+  isCorrect: boolean
+  answeredAt: string
 }
 
 export interface PhraseFormData {
