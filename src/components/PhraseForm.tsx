@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface PhraseFormProps {
@@ -19,6 +19,32 @@ interface PhraseFormProps {
 const CATEGORIES = ['daily', 'business', 'email', 'connector', 'other']
 const DIFFICULTIES = ['easy', 'normal', 'hard']
 
+function findOccurrences(example: string, phrase: string): number[] {
+  if (!phrase || !example) return []
+  const indices: number[] = []
+  const lower = example.toLowerCase()
+  const target = phrase.toLowerCase()
+  let start = 0
+  while (true) {
+    const idx = lower.indexOf(target, start)
+    if (idx === -1) break
+    indices.push(idx)
+    start = idx + 1
+  }
+  return indices
+}
+
+function buildPreview(example: string, phrase: string, occurrenceIndex: number): string {
+  const indices = findOccurrences(example, phrase)
+  if (indices.length === 0) return example
+  const targetIdx = indices[occurrenceIndex] ?? indices[0]
+  return (
+    example.slice(0, targetIdx) +
+    '[' + example.slice(targetIdx, targetIdx + phrase.length) + ']' +
+    example.slice(targetIdx + phrase.length)
+  )
+}
+
 export default function PhraseForm({ initialData = {}, onSubmit, submitLabel = 'Save' }: PhraseFormProps) {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -32,6 +58,17 @@ export default function PhraseForm({ initialData = {}, onSubmit, submitLabel = '
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [selectedOccurrence, setSelectedOccurrence] = useState(0)
+
+  const occurrences = findOccurrences(form.example, form.phrase)
+  const phraseInExample = occurrences.length > 0
+  const preview = phraseInExample
+    ? buildPreview(form.example, form.phrase, selectedOccurrence)
+    : null
+
+  useEffect(() => {
+    setSelectedOccurrence(0)
+  }, [form.phrase, form.example])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -72,6 +109,50 @@ export default function PhraseForm({ initialData = {}, onSubmit, submitLabel = '
         <textarea name="example" value={form.example} onChange={handleChange} required rows={2}
           className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
+
+      {/* Quality check section */}
+      {form.phrase && form.example && (
+        <div className={"p-3 rounded-lg border " + (phraseInExample ? 'border-green-300 bg-green-50' : 'border-yellow-300 bg-yellow-50')}>
+          {!phraseInExample ? (
+            <div>
+              <p className="text-yellow-800 font-medium text-sm">
+                ⚠️ Warning: The phrase &ldquo;{form.phrase}&rdquo; was not found in the example sentence.
+              </p>
+              <p className="text-yellow-700 text-xs mt-1">
+                A fill-in-the-blank question cannot be generated. You can still save, but consider updating the example to include the phrase.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-green-800 font-medium text-sm mb-2">
+                ✓ Phrase found in example ({occurrences.length} occurrence{occurrences.length > 1 ? 's' : ''})
+              </p>
+              {occurrences.length > 1 && (
+                <div className="mb-2">
+                  <p className="text-green-700 text-xs mb-1">Select which occurrence to blank:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {occurrences.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setSelectedOccurrence(i)}
+                        className={"px-2 py-1 text-xs rounded border " + (selectedOccurrence === i ? 'bg-green-600 text-white border-green-600' : 'border-green-400 text-green-700 hover:bg-green-100')}
+                      >
+                        #{i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div>
+                <p className="text-green-700 text-xs mb-1">Preview ([ ] marks the blank):</p>
+                <p className="text-sm font-mono bg-white border border-green-200 px-2 py-1 rounded">{preview}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium mb-1">Translation</label>
         <textarea name="translation" value={form.translation} onChange={handleChange} rows={2}
