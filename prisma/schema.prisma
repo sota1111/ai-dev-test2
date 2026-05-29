@@ -18,6 +18,7 @@ model Phrase {
   difficulty     String    @default("normal")
   nextReviewDate DateTime?
   reviewInterval Int       @default(1)
+  isFavorite     Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   records        LearningRecord[]
@@ -28,5 +29,8 @@ model LearningRecord {
   phraseId    String
   phrase      Phrase   @relation(fields: [phraseId], references: [id], onDelete: Cascade)
   isCorrect   Boolean
+  hintCount   Int      @default(0)
+  userAnswer  String   @default("")
+  skipped     Boolean  @default(false)
   answeredAt  DateTime @default(now())
 }

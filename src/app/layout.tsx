@@ -37,6 +37,7 @@ export default function RootLayout({
               <Link href="/review" className="text-gray-600 hover:text-blue-600">Review</Link>
               <Link href="/weak" className="text-gray-600 hover:text-blue-600">Weak</Link>
               <Link href="/stats" className="text-gray-600 hover:text-blue-600">Stats</Link>
+              <Link href="/history" className="text-gray-600 hover:text-blue-600">History</Link>
             </div>
           </div>
         </nav>

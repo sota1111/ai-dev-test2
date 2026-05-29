@@ -7,6 +7,7 @@ const MODES = [
   { value: 'all', label: 'All phrases', desc: 'Review all registered phrases' },
   { value: 'unreviewed', label: 'Unreviewed only', desc: 'Phrases you have never reviewed' },
   { value: 'weak', label: 'Weak phrases', desc: 'Phrases with accuracy below 50%' },
+  { value: 'favorite', label: 'Favorites only ★', desc: 'Phrases you marked as favorite' },
 ]
 const CATEGORIES = ['', 'daily', 'business', 'email', 'connector', 'other']
 const DIFFICULTIES = ['', 'easy', 'normal', 'hard']
@@ -40,10 +41,7 @@ export default function ReviewPage() {
     if (difficulty) params.set('difficulty', difficulty)
     fetch('/api/review?' + params.toString())
       .then(r => r.json())
-      .then(data => {
-        setCount(data.count ?? null)
-        setCountLoading(false)
-      })
+      .then(data => { setCount(data.count ?? null); setCountLoading(false) })
       .catch(() => setCountLoading(false))
   }, [mode, category, difficulty])
 
@@ -55,7 +53,7 @@ export default function ReviewPage() {
     router.push('/review/quiz?' + params.toString())
   }
 
-  const effectiveCount = count === null ? '?' : Math.min(count, limit === 'all' ? Infinity : parseInt(limit)).toString().replace('Infinity', count.toString())
+  const effectiveCount = count === null ? '?' : (limit === 'all' ? count : Math.min(count, parseInt(limit))).toString()
 
   return (
     <div className="max-w-lg">
@@ -117,9 +115,7 @@ export default function ReviewPage() {
         ) : (
           <span className="text-blue-800">
             <span className="font-semibold">{count ?? '?'}</span> phrase{count !== 1 ? 's' : ''} match your filters
-            {count !== null && limit !== 'all' && count > parseInt(limit)
-              ? ` → will show ${limit}`
-              : ''}
+            {count !== null && limit !== 'all' && parseInt(limit) < count ? ` → will show ${limit}` : ''}
           </span>
         )}
       </div>

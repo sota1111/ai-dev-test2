@@ -3,13 +3,13 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { phraseId, isCorrect } = body
+  const { phraseId, isCorrect, hintCount = 0, userAnswer = '', skipped = false } = body
   if (!phraseId || isCorrect === undefined) {
     return NextResponse.json({ error: 'phraseId and isCorrect required' }, { status: 400 })
   }
 
   const record = await prisma.learningRecord.create({
-    data: { phraseId, isCorrect }
+    data: { phraseId, isCorrect, hintCount, userAnswer, skipped }
   })
 
   const phrase = await prisma.phrase.findUnique({ where: { id: phraseId } })

@@ -41,6 +41,8 @@ export async function GET(request: NextRequest) {
       phrases = allPhrases.filter(p =>
         p.nextReviewDate === null || p.nextReviewDate <= todayEnd
       )
+    } else if (mode === 'favorite') {
+      phrases = allPhrases.filter(p => p.isFavorite)
     } else {
       phrases = allPhrases
     }
@@ -49,7 +51,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ count: phrases.length })
     }
 
-    // Sort
     if (order === 'accuracy_asc') {
       phrases = phrases.sort((a, b) => {
         const accA = a.records.length === 0 ? -1 : a.records.filter(r => r.isCorrect).length / a.records.length
@@ -69,7 +70,6 @@ export async function GET(request: NextRequest) {
     phrases = phrases.map(p => ({ ...p, records: undefined }))
   }
 
-  // Apply limit
   if (limitParam && limitParam !== 'all') {
     const n = parseInt(limitParam, 10)
     if (!isNaN(n) && n > 0) {

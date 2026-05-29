@@ -8,6 +8,7 @@ interface Phrase {
   meaning: string
   category: string
   difficulty: string
+  isFavorite: boolean
   nextReviewDate?: string | null
 }
 
@@ -40,16 +41,25 @@ export default function PhrasesPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [difficulty, setDifficulty] = useState('')
+  const [favOnly, setFavOnly] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams()
-    if (search) params.set('search', search)
+    if (search) params.set('q', search) // Changed from 'search' to 'q' to match api/phrases/route.ts
     if (category) params.set('category', category)
     if (difficulty) params.set('difficulty', difficulty)
     fetch('/api/phrases?' + params.toString())
       .then(r => r.json())
       .then(data => { setPhrases(data); setLoading(false) })
   }, [search, category, difficulty])
+
+  const toggleFavorite = async (id: string) => {
+    const res = await fetch(`/api/phrases/${id}/favorite`, { method: 'POST' })
+    const data = await res.json()
+    setPhrases(prev => prev.map(p => p.id === id ? { ...p, isFavorite: data.isFavorite } : p))
+  }
+
+  const displayedPhrases = favOnly ? phrases.filter(p => p.isFavorite) : phrases
 
   return (
     <div>
@@ -60,7 +70,7 @@ export default function PhrasesPage() {
         </Link>
       </div>
 
-      <div className="flex gap-3 mb-4 flex-wrap">
+      <div className="flex gap-3 mb-4 flex-wrap items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Search phrases..."
           className="border rounded px-3 py-2 flex-1 min-w-48 focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -72,16 +82,22 @@ export default function PhrasesPage() {
           className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
           {DIFFICULTIES.map(d => <option key={d} value={d}>{d || 'All difficulties'}</option>)}
         </select>
+        <label className="flex items-center gap-1 cursor-pointer text-sm text-gray-700 border rounded px-3 py-2 hover:bg-yellow-50">
+          <input type="checkbox" checked={favOnly} onChange={e => setFavOnly(e.target.checked)} className="accent-yellow-500" />
+          <span>★ Favorites only</span>
+        </label>
       </div>
 
       {loading ? (
         <div className="text-gray-500">Loading...</div>
-      ) : phrases.length === 0 ? (
+      ) : displayedPhrases.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          <p className="text-lg mb-4">No phrases found.</p>
-          <Link href="/phrases/new" className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">
-            Add your first phrase
-          </Link>
+          <p className="text-lg mb-4">{favOnly ? 'No favorites yet.' : 'No phrases found.'}</p>
+          {!favOnly && (
+            <Link href="/phrases/new" className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">
+              Add your first phrase
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -97,7 +113,7 @@ export default function PhrasesPage() {
               </tr>
             </thead>
             <tbody>
-              {phrases.map(p => {
+              {displayedPhrases.map(p => {
                 const status = getReviewStatus(p.nextReviewDate)
                 return (
                   <tr key={p.id} className="hover:bg-gray-50 border-b">
@@ -114,8 +130,13 @@ export default function PhrasesPage() {
                         {status}
                       </span>
                     </td>
-                    <td className="p-3">
-                      <Link href={'/phrases/' + p.id} className="text-blue-600 hover:underline text-sm mr-3">View</Link>
+                    <td className="p-3 flex gap-2 items-center flex-wrap">
+                      <button onClick={() => toggleFavorite(p.id)}
+                        title={p.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        className={'text-lg leading-none hover:scale-110 transition-transform ' + (p.isFavorite ? 'text-yellow-500' : 'text-gray-300')}>
+                        ★
+                      </button>
+                      <Link href={'/phrases/' + p.id} className="text-blue-600 hover:underline text-sm">View</Link>
                       <Link href={'/phrases/' + p.id + '/edit'} className="text-gray-600 hover:underline text-sm">Edit</Link>
                     </td>
                   </tr>
