@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# English Phrase Reviewer
 
-## Getting Started
+英熟語・フレーズの穴埋め問題で復習できる学習アプリ（Next.js 14 + Prisma + SQLite）。
 
-First, run the development server:
+## 起動方法
+
+### 開発用起動
+
+ホットリロードあり。コード変更が即座に反映されます。
 
 ```bash
+# 依存関係インストール
+npm install
+
+# .env ファイル作成
+echo 'DATABASE_URL=file:./dev.db' > .env
+
+# DBマイグレーション
+npx prisma migrate dev
+
+# 開発サーバー起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで http://localhost:3000 を開く。ナビに「DEV」バッジが表示されます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 本番相当起動
 
-## Learn More
+最適化ビルドを実行し、本番公開に近い状態で動作確認できます。
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# .env ファイル作成（未作成の場合）
+echo 'DATABASE_URL=file:./dev.db' > .env
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# ビルド＆起動（1コマンド）
+npm run start:prod
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+または個別に実行:
 
-## Deploy on Vercel
+```bash
+npm run build    # 本番ビルド
+npm start        # 本番サーバー起動
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ブラウザで http://localhost:3000 を開く。「DEV」バッジは表示されません。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+### 開発用起動と本番相当起動の違い
+
+| 項目 | 開発用 (npm run dev) | 本番相当 (npm run start:prod) |
+|------|----------------------|-------------------------------|
+| コマンド | npm run dev | npm run start:prod |
+| NODE_ENV | development | production |
+| DEV バッジ | ナビに表示 | 非表示 |
+| ホットリロード | あり | なし |
+| 速度 | 遅い（JIT） | 速い（ビルド済み） |
+| 用途 | 開発・デバッグ | 動作確認・デプロイ前検証 |
+
+---
+
+## 環境変数
+
+.env.example を参考に .env ファイルを作成してください。
+
+| 変数名 | 説明 | デフォルト |
+|--------|------|-----------|
+| DATABASE_URL | SQLite DB パス | file:./dev.db |
+| PORT | 起動ポート（Docker用） | 3000 |
+
+---
+
+## 機能
+
+- フレーズの登録・編集・削除
+- 穴埋め問題による復習クイズ
+- スペースド・リピティション（復習スケジュール自動設定）
+- 復習セッション設定（出題数・カテゴリ・難易度・順序）
+- 例文の品質チェック
+- 詳細分析画面（正答率・カテゴリ別統計）
+
+---
+
+## 技術スタック
+
+- Next.js 14 (App Router)
+- TypeScript
+- Prisma + SQLite
+- Tailwind CSS
