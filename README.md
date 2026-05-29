@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# English Phrase Reviewer
 
-## Getting Started
+英熟語・フレーズの穴埋め問題で復習できる学習アプリ（Next.js 14 + Prisma + SQLite）。
 
-First, run the development server:
+## 機能
+
+- フレーズの登録・編集・削除
+- 穴埋め問題による復習クイズ
+- 入力ゆれ許容（大文字小文字・前後空白・句読点）
+- 段階的ヒント（意味・先頭文字・単語数）
+- スペースド・リピティション（復習スケジュール自動設定）
+- お気に入り登録・お気に入りのみ復習
+- 復習セッション設定（出題数・カテゴリ・難易度・順序）
+- 例文の品質チェック
+- 詳細分析画面（正答率・カテゴリ別統計）
+- 学習履歴ページ
+
+---
+
+## 起動方法
+
+### 開発用起動（ローカル）
 
 ```bash
+# 依存関係インストール
+npm install
+
+# .env ファイル作成
+echo 'DATABASE_URL=file:./dev.db' > .env
+
+# DBマイグレーション
+npx prisma migrate dev
+
+# 開発サーバー起動（ホットリロードあり）
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで http://localhost:3000 を開く。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 本番相当起動（コンテナ）
 
-## Learn More
+Docker と Docker Compose が必要です。
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# 1. .env ファイル作成（.env.example を参考に）
+cp .env.example .env
+# 必要に応じてPORTを変更
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 2. コンテナ起動（初回はビルドが実行されます）
+docker compose up -d
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 3. ブラウザで確認
+open http://localhost:3000
 
-## Deploy on Vercel
+# 4. 起動確認（ヘルスチェック）
+curl http://localhost:3000/api/health
+# -> {"status":"ok"}
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 5. ログ確認
+docker compose logs -f
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 6. 停止
+docker compose down
+```
+
+#### 開発用起動との違い
+
+| 項目 | 開発用 (`npm run dev`) | コンテナ (`docker compose up`) |
+|------|----------------------|-------------------------------|
+| モード | 開発モード（ホットリロードあり） | 本番モード（ビルド済み） |
+| DB場所 | `./dev.db`（ローカルファイル） | Docker ボリューム（`db_data`） |
+| ポート | 3000（固定） | `.env` の PORT で変更可 |
+| デバッグ情報 | あり | なし |
+| 速度 | 遅い（JIT） | 速い（静的ビルド） |
+
+#### PORT 変更方法
+
+`.env` ファイルで設定：
+
+```
+PORT=8080
+DATABASE_URL=file:/app/data/dev.db
+```
+
+その後 `docker compose up -d` で再起動。
+
+#### データの永続化
+
+SQLite データベースは Docker ボリューム `db_data` に保存されます。
+`docker compose down` でコンテナを停止してもデータは保持されます。
+データを削除する場合は `docker compose down -v` を使用してください。
+
+---
+
+## 環境変数
+
+| 変数名 | 説明 | デフォルト |
+|--------|------|-----------|
+| `DATABASE_URL` | SQLite DB パス | `file:./dev.db` |
+| `PORT` | 起動ポート | `3000` |
+
+`.env.example` を参考に `.env` ファイルを作成してください。
+
+---
+
+## 技術スタック
+
+- Next.js 14 (App Router)
+- TypeScript
+- Prisma + SQLite
+- Tailwind CSS
+- Docker / Docker Compose
